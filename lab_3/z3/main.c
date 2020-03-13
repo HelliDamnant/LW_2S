@@ -2,23 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-void insert(int a, FILE *f)
-{
-    int p;
-    
-    do
-    {
-        fseek(f, -1 * sizeof(int), 1);
-        fread(&p, sizeof(int), 1, f);
-        fwrite(&p, sizeof(int), 1, f);
-        fseek(f, -2 * sizeof(int), 1);
-    }
-    while (ftell(f) != 0 && a < p);
-    
-    fwrite(&a, sizeof(int), 1, f);
-    fseek(f, 0, 2);
-}
-
 int main()
 {
     FILE *f = NULL;
@@ -28,35 +11,46 @@ int main()
         exit(1);
     }
 
-    int a, n;
+    int a, b, n;
     printf("Enter the number of items: ");
-    scanf("%d", &n);
-    printf("Enter the numbers:\n");
-    if (scanf("%d", &a))
+    
+    if (scanf("%d", &n) == 0)
     {
-        fwrite(&a, sizeof(int), 1, f);        
-        while (--n)
+        printf("Error");
+        exit(1);
+    }
+    
+    printf("Enter the numbers:\n");
+    
+    while (n-- && scanf("%d", &a))
+    {
+        fflush(stdin);
+        while (ftell(f))
         {
-            fflush(stdin);
-            if (scanf("%d", &a))
-                insert(a, f);
-            else
-            {
-                printf("Error");
-                exit(1);
-            }
+            fseek(f, -1 * sizeof(int), 1);
+            fread(&b, sizeof(int), 1, f);
+            
+            if (a > b) break;
+            
+            fwrite(&b, sizeof(int), 1, f);
+            fseek(f, -2 * sizeof(int), 1);
         }
+        fwrite(&a, sizeof(int), 1, f);
+        fseek(f, 0, 2);
+    }
+
+    if (n)
+    {    
+        fseek(f, 0, 0);
+        while (fread(&a, sizeof(int), 1, f) > 0) printf("%d ", a);
+        printf("\n");
+        
+        fclose(f);
+        return 0;
     }
     else
     {
         printf("Error");
         exit(1);
     }
-
-    fseek(f, 0, 0);
-    while (fread(&a, sizeof(int), 1, f) > 0) printf("%d ", a);
-    printf("\n");
-        
-    fclose(f);
-    return 0;
 }
