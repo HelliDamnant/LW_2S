@@ -3,19 +3,25 @@
 #include <string.h>
 
 char* get_path();
-int search(char *path);
+int counting_occurrences(char *path, char c);
 
 int main()
 {
     printf("Enter file name: ");
     char *path = get_path();
 
-    if (search(path))
+    char c;
+    printf("Enter symbol: ");
+    scanf("%c", &c);
+    
+    int number_char;
+    if ((number_char = counting_occurrences(path, c)) == -1)
     {
         printf("Error!");
         exit(1);
     }
-    
+    printf("Number occurrences: %d", number_char);
+
     free(path);
     return 0;
 }
@@ -29,20 +35,15 @@ char* get_path()
     return s;
 }
 
-int search(char *path)
+int counting_occurrences(char *path, char c)
 {
     FILE *f = NULL;
-    if ((f = fopen(path, "rb")) == NULL) return 1;
+    if ((f = fopen(path, "r")) == NULL) return -1;
 
-    int a, b;
-    if (fread(&a, sizeof(int), 1, f) > 0)
-    {
-        while (fread(&b, sizeof(int), 1, f) > 0 && b > a) a = b;
-        printf("This number: %d", a);
-    }
-    else
-        printf("The file is empty.");
+    int k = 0;
+    char ch;
+    while ((ch = getc(f)) != EOF) if (ch == c) k++;
 
     fclose(f);
-    return 0;
+    return k;
 }
