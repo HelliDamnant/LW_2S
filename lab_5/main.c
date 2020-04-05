@@ -89,7 +89,7 @@ void push(Stack **stack, CONST_STACK_TYPE data, unsigned int t_size)
     memcpy(temp->_data, data, t_size);
     
     temp->_next = *stack;
-    *stack = temp;
+    *stack = temp;   
 }
 
 // удаление элемента из стека

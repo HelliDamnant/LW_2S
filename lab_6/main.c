@@ -3,134 +3,147 @@
 #include <string.h>
 
 #define ERROR {printf("Error!");exit(1);}
-#define STACK_TYPE void *
-#define CONST_STACK_TYPE const void *
+#define VOID_TYPE void *
+#define CONST_VOID_TYPE const void *
 
-typedef struct Stack
-{
-    STACK_TYPE _data;
-    struct Stack *_next;
-} Stack;
+typedef struct Node {
+    VOID_TYPE data;
+    struct Node *next;
+} Node;
 
-char* get_filename();
-void input(char *path);
-void push(Stack **stack, CONST_STACK_TYPE data, unsigned int t_size);
-void pop(Stack **stack);
-void stack_free(Stack **stack);
-unsigned int stack_size(Stack *stack);
+typedef struct Queue {
+    int count;
+    Node *head;
+    Node *tail;
+} Queue;
+
+Queue** read_file(int*);
+int comparison(Queue*, Queue*);
+void queue_init(Queue**);
+void push(Queue**, CONST_VOID_TYPE, unsigned);
+void pop(Queue**);
+void queue_free(Queue*);
 
 int main()
 {
-    printf("Enter the name of the file with numeric information: ");
-    char *file_numeric = get_filename();
-    printf("Enter the name of the file with text information: ");
-    char *file_text = get_filename();
-    printf("Enter a name for the new file: ");
-    char *new_file = get_filename();
+    int size;
+    Queue **array_queues = read_file(&size);
 
-    FILE *f1 = NULL,
-         *f2 = NULL,
-         *f3 = NULL;
-    if ((f1 = fopen(file_numeric, "r")) == NULL) ERROR
-    if ((f2 = fopen(file_text, "r")) == NULL) ERROR
-    if ((f3 = fopen(new_file, "w")) == NULL) ERROR
-
-    Stack *univ_stack = NULL;
-
-    // код без говнокода это плохой код
-    char *number = (char*)calloc(100, sizeof(char)),
-         *word = (char*)calloc(100, sizeof(char));
-    while (fscanf(f1, "%s", number) != EOF && fscanf(f2, "%s", word) != EOF)
+    int i, j;
+    for (i = 0; i < size - 1; i++)
     {
-        number = (char*)realloc(number, strlen(number) * sizeof(char));
-        word = (char*)realloc(word, strlen(word) * sizeof(char));
-
-        push(&univ_stack, (CONST_STACK_TYPE)word, strlen(word) * sizeof(char));
-        push(&univ_stack, (CONST_STACK_TYPE)number, strlen(number) * sizeof(char));
-
-        number = (char*)realloc(number, 100 * sizeof(char));
-        word = (char*)realloc(word, 100 * sizeof(char));
+        for (j = i + 1; j < size; j++)
+            if (comparison(*(array_queues + i), *(array_queues + j))) break;
+        if (j != size) break;
     }
-    // но надо знать меру
+    printf("Queue number %d and queue number %d are equal", i + 1, j + 1);
+ 
+    for (int i = 0; i < size; i++) queue_free(*(array_queues + i));
+    free(array_queues);
 
-    while (univ_stack->_next != NULL)
-    {
-        fprintf(f3, "%s ", (char*)univ_stack->_data);
-        pop(&univ_stack);
-    }
-    fprintf(f3, "%s", (char*)univ_stack->_data);
-    pop(&univ_stack);
-
-    fclose(f1);
-    fclose(f2);
-    fclose(f3);
-    return 0;   
+    return 0;
 }
 
-// получение имени файла
-char* get_filename()
+int comparison(Queue *queue_1, Queue *queue_2)
 {
-    char *s = (char*)calloc(200, sizeof(char));
-    fgets(s, 200, stdin);
-    s[strlen(s) - 1] = 0;
-    s = (char*)realloc(s, strlen(s) * sizeof(char));
-    return s;
-}
-
-// добавление элемента в стек
-void push(Stack **stack, CONST_STACK_TYPE data, unsigned int t_size)
-{
-    Stack *temp = (Stack*)malloc(sizeof(Stack));
-    if (temp == NULL) ERROR
-   
-    temp->_data = malloc(t_size);
-    if (temp->_data == NULL) ERROR
+    if (queue_1->count != queue_2->count) return 0;
     
-    memcpy(temp->_data, data, t_size);
+    Node *temp_1 = queue_1->head,
+         *temp_2 = queue_2->head;
+
+    int t = queue_1->count;
+    while (t--)
+        if (!strcmp((char*)temp_1->data, (char*)temp_2->data)) {
+            temp_1 = temp_1->next;
+            temp_2 = temp_2->next;
+        } else {
+            return 0;
+        }
+    return 1;
+}
+
+Queue** read_file(int *_size)
+{
+    FILE *f = NULL;
+    if ((f = fopen("data.txt", "r")) == NULL) ERROR
     
-    temp->_next = *stack;
-    *stack = temp;
+    Queue **temp = NULL;
+    if ((temp = (Queue**)malloc(sizeof(Queue*))) == NULL) ERROR
+    queue_init(temp + 0);
+    
+    char *str = NULL;
+    if ((str = (char*)calloc(1,1)) == NULL) ERROR
+    
+    int str_size = 0,
+        temp_size = 1;
+
+    char symb;
+    while ((symb = fgetc(f)) != EOF)
+        if (symb == '\n') {
+            push(temp + (temp_size - 1), (CONST_VOID_TYPE)str, str_size * sizeof(char));
+            str_size = 0;
+            temp = (Queue**)realloc(temp, ++temp_size * sizeof(Queue*));
+            queue_init(temp + (temp_size - 1));
+        } else if (symb == ' ') {
+            push(temp + (temp_size - 1), (CONST_VOID_TYPE)str, str_size * sizeof(char));
+            str_size = 0;
+        } else {
+            str = (char*)realloc(str, ++str_size * sizeof(char));
+            str[str_size - 1] = symb;
+        }
+
+    free(str);
+    fclose(f);
+    *_size = temp_size;
+    return temp;
 }
 
-// удаление элемента из стека
-void pop(Stack **stack)
+void queue_init(Queue **q)
 {
-    Stack *previous = NULL;
-    if (stack == NULL) ERROR
-
-    previous = (*stack);
-    (*stack) = (*stack)->_next;
-	
-    free(previous->_data);
-    free(previous);
+    if (((*q) = (Queue*)malloc(sizeof(Queue))) == NULL) ERROR
+    (*q)->count = 0;
+    (*q)->head = NULL;
+    (*q)->tail = NULL;
 }
 
-// получение размера стека
-unsigned int stack_size(Stack *stack)
+void push(Queue **queue, CONST_VOID_TYPE _data, unsigned t_size)
 {
-	Stack *temp = stack;
-	unsigned int size = 0;
+    Node *tmp = NULL;
+    if ((tmp = (Node*)malloc(sizeof(Node))) == NULL) ERROR
+    
+    tmp->data = NULL;
+    tmp->next = NULL;
 
-	while (temp != NULL)
-    {
-		++size;
-		temp = temp->_next;
-	}
+    if ((tmp->data = malloc(t_size)) == NULL) ERROR
+    memcpy(tmp->data, _data, t_size);
 
-	return size;
+    if ((*queue)->count)
+        (*queue)->tail = (*queue)->tail->next = tmp;
+    else
+        (*queue)->head = (*queue)->tail = tmp;
+
+    (*queue)->count++;
 }
 
-// освобождение стека
-void stack_free(Stack **stack)
+void pop(Queue **queue)
 {
-    if (*stack == NULL) ERROR;
-    while ((*stack)->_next != NULL)
-    {
-        pop(stack);
-        *stack = (*stack)->_next;
-    }
+    if (!(*queue)->count) ERROR
 
-	free((*stack)->_data);
-    free(*stack);
-	*stack = NULL;
+    Node *tmp = (*queue)->head;
+
+    (*queue)->head = (*queue)->head->next;
+    (*queue)->count--;
+
+    free(tmp->data);
+    free(tmp);
+}
+
+void queue_free(Queue *queue)
+{
+    if (queue == NULL) ERROR
+
+    while (queue->count) pop(&queue);
+
+    free(queue);
+	queue = NULL;
 }
