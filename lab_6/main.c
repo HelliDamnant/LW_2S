@@ -74,22 +74,22 @@ Queue** read_file(int *_size)
     char *str = NULL;
     if ((str = (char*)calloc(1,1)) == NULL) ERROR
     
-    int str_size = 0,
-        temp_size = 1;
+    int temp_size = 1,
+        str_size = 0;
 
-    char symb;
-    while ((symb = fgetc(f)) != EOF)
-        if (symb == '\n') {
+    char c;
+    while ((c = fgetc(f)) != EOF)
+        if (c == '\n') {
             push(temp + (temp_size - 1), (CONST_VOID_TYPE)str, str_size * sizeof(char));
             str_size = 0;
             temp = (Queue**)realloc(temp, ++temp_size * sizeof(Queue*));
             queue_init(temp + (temp_size - 1));
-        } else if (symb == ' ') {
+        } else if (c == ' ') {
             push(temp + (temp_size - 1), (CONST_VOID_TYPE)str, str_size * sizeof(char));
             str_size = 0;
         } else {
             str = (char*)realloc(str, ++str_size * sizeof(char));
-            str[str_size - 1] = symb;
+            str[str_size - 1] = c;
         }
 
     free(str);

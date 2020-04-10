@@ -3,72 +3,88 @@
 #include <string.h>
 
 #define ERROR {printf("Error!");exit(1);}
-#define STACK_TYPE void *
-#define CONST_STACK_TYPE const void *
+#define CONST_VOID_TYPE const void *
 
 typedef struct Stack
 {
-    STACK_TYPE _data;
-    struct Stack *_next;
+    void *data;
+    struct Stack *next;
 } Stack;
 
-char* get_filename();
-void input(char *path);
-void push(Stack **stack, CONST_STACK_TYPE data, unsigned int t_size);
-void pop(Stack **stack);
-void stack_free(Stack **stack);
-unsigned int stack_size(Stack *stack);
+void writing_stack(Stack*, FILE*);
+char* read_str(FILE*);
+char* get_str();
+void push(Stack**, CONST_VOID_TYPE, unsigned int);
+void pop(Stack**);
+void stack_free(Stack*);
 
 int main()
 {
     printf("Enter the name of the file with numeric information: ");
-    char *file_numeric = get_filename();
+    char *file_numeric = get_str();
     printf("Enter the name of the file with text information: ");
-    char *file_text = get_filename();
+    char *file_text = get_str();
     printf("Enter a name for the new file: ");
-    char *new_file = get_filename();
+    char *new_file = get_str();
 
-    FILE *f1 = NULL,
-         *f2 = NULL,
-         *f3 = NULL;
-    if ((f1 = fopen(file_numeric, "r")) == NULL) ERROR
-    if ((f2 = fopen(file_text, "r")) == NULL) ERROR
-    if ((f3 = fopen(new_file, "w")) == NULL) ERROR
+    FILE *f_num = NULL, *f_text = NULL;
+    if ((f_num = fopen(file_numeric, "r")) == NULL) ERROR
+    if ((f_text = fopen(file_text, "r")) == NULL) ERROR
+    if (feof(f_num) || feof(f_text)) ERROR
 
-    Stack *univ_stack = NULL;
-
-    // код без говнокода это плохой код
-    char *number = (char*)calloc(100, sizeof(char)),
-         *word = (char*)calloc(100, sizeof(char));
-    while (fscanf(f1, "%s", number) != EOF && fscanf(f2, "%s", word) != EOF)
+    Stack *stack = NULL;
+    char *number, *word;
+    while ((number = read_str(f_num)) != NULL && (word = read_str(f_text)) != NULL)
     {
-        number = (char*)realloc(number, strlen(number) * sizeof(char));
-        word = (char*)realloc(word, strlen(word) * sizeof(char));
-
-        push(&univ_stack, (CONST_STACK_TYPE)word, strlen(word) * sizeof(char));
-        push(&univ_stack, (CONST_STACK_TYPE)number, strlen(number) * sizeof(char));
-
-        number = (char*)realloc(number, 100 * sizeof(char));
-        word = (char*)realloc(word, 100 * sizeof(char));
+        push(&stack, (CONST_VOID_TYPE)number, strlen(number) * sizeof(char));
+        push(&stack, (CONST_VOID_TYPE)word, strlen(word) * sizeof(char));
     }
-    // но надо знать меру
 
-    while (univ_stack->_next != NULL)
-    {
-        fprintf(f3, "%s ", (char*)univ_stack->_data);
-        pop(&univ_stack);
-    }
-    fprintf(f3, "%s", (char*)univ_stack->_data);
-    pop(&univ_stack);
+    fclose(f_num);
+    fclose(f_text);
 
-    fclose(f1);
-    fclose(f2);
-    fclose(f3);
+    FILE *f_new = NULL;
+    if ((f_new = fopen(new_file, "w")) == NULL) ERROR
+    writing_stack(stack, new_file);
+    fclose(f_new);
+
+    stack_free(stack);
     return 0;   
 }
 
-// получение имени файла
-char* get_filename()
+void writing_stack(Stack *stack, FILE *f)
+{
+    Stack *temp = stack;
+    while (temp != NULL)
+    {
+        fprintf(f, "%s ", (char*)temp->data);
+        temp = temp->next;
+    }
+}
+
+char* read_str(FILE *f)
+{
+    if (feof(f)) return NULL;
+    
+    // удаление пробелов и переносов строки
+    char c;
+    while ((c = fgetc(f)) != EOF) if (c != ' ' && c != '\n') break;
+    if (feof(f)) return NULL;
+
+    // считывание слова
+    int k = 0;
+    char *s = NULL;
+    if ((s = (char*)calloc(1,1)) == NULL) ERROR
+    do
+    {
+        s = (char*)realloc(s, ++k * sizeof(char));
+        s[k - 1] = c;
+    }
+    while ((c = fgetc(f)) != ' ' && c != '\n' && c != EOF);
+    return s;
+}
+
+char* get_str()
 {
     char *s = (char*)calloc(200, sizeof(char));
     fgets(s, 200, stdin);
@@ -77,60 +93,34 @@ char* get_filename()
     return s;
 }
 
-// добавление элемента в стек
-void push(Stack **stack, CONST_STACK_TYPE data, unsigned int t_size)
+void push(Stack **stack, CONST_VOID_TYPE data, unsigned int t_size)
 {
     Stack *temp = (Stack*)malloc(sizeof(Stack));
     if (temp == NULL) ERROR
    
-    temp->_data = malloc(t_size);
-    if (temp->_data == NULL) ERROR
+    temp->data = malloc(t_size);
+    if (temp->data == NULL) ERROR
     
-    memcpy(temp->_data, data, t_size);
+    memcpy(temp->data, data, t_size);
     
-    temp->_next = *stack;
+    temp->next = *stack;
     *stack = temp;   
 }
 
-// удаление элемента из стека
 void pop(Stack **stack)
 {
     Stack *previous = NULL;
     if (stack == NULL) ERROR
 
     previous = (*stack);
-    (*stack) = (*stack)->_next;
+    (*stack) = (*stack)->next;
 	
-    free(previous->_data);
+    free(previous->data);
     free(previous);
 }
 
-// получение размера стека
-unsigned int stack_size(Stack *stack)
+void stack_free(Stack *stack)
 {
-	Stack *temp = stack;
-	unsigned int size = 0;
-
-	while (temp != NULL)
-    {
-		++size;
-		temp = temp->_next;
-	}
-
-	return size;
-}
-
-// освобождение стека
-void stack_free(Stack **stack)
-{
-    if (*stack == NULL) ERROR;
-    while ((*stack)->_next != NULL)
-    {
-        pop(stack);
-        *stack = (*stack)->_next;
-    }
-
-	free((*stack)->_data);
-    free(*stack);
-	*stack = NULL;
+    if (stack == NULL) ERROR;
+    while (stack != NULL) pop(&stack);
 }
