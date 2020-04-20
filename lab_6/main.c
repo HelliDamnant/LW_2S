@@ -64,15 +64,15 @@ int comparison(Queue *queue_1, Queue *queue_2)
 
 Queue** read_file(int *_size)
 {
-    FILE *f = NULL;
-    if ((f = fopen("data.txt", "r")) == NULL) ERROR
+    FILE *f == fopen("data.txt", "r");
+    if (f == NULL) ERROR
     
-    Queue **temp = NULL;
-    if ((temp = (Queue**)malloc(sizeof(Queue*))) == NULL) ERROR
+    Queue **temp = (Queue**)malloc(sizeof(Queue*));
+    if (temp == NULL) ERROR
     queue_init(temp + 0);
     
-    char *str = NULL;
-    if ((str = (char*)calloc(1,1)) == NULL) ERROR
+    char *str = (char*)calloc(1,1));
+    if (str == NULL) ERROR
     
     int temp_size = 1,
         str_size = 0;
@@ -83,12 +83,14 @@ Queue** read_file(int *_size)
             push(temp + (temp_size - 1), (CONST_VOID_TYPE)str, str_size * sizeof(char));
             str_size = 0;
             temp = (Queue**)realloc(temp, ++temp_size * sizeof(Queue*));
+            if (temp == NULL) ERROR
             queue_init(temp + (temp_size - 1));
         } else if (c == ' ') {
             push(temp + (temp_size - 1), (CONST_VOID_TYPE)str, str_size * sizeof(char));
             str_size = 0;
         } else {
             str = (char*)realloc(str, ++str_size * sizeof(char));
+            if (str == NULL) ERROR
             str[str_size - 1] = c;
         }
 
@@ -108,14 +110,12 @@ void queue_init(Queue **q)
 
 void push(Queue **queue, CONST_VOID_TYPE _data, unsigned t_size)
 {
-    Node *tmp = NULL;
-    if ((tmp = (Node*)malloc(sizeof(Node))) == NULL) ERROR
+    Node *tmp = (Node*)malloc(sizeof(Node));
+    if (tmp == NULL) ERROR
     
-    tmp->data = NULL;
-    tmp->next = NULL;
-
     if ((tmp->data = malloc(t_size)) == NULL) ERROR
     memcpy(tmp->data, _data, t_size);
+    tmp->next = NULL;
 
     if ((*queue)->count)
         (*queue)->tail = (*queue)->tail->next = tmp;
@@ -145,5 +145,4 @@ void queue_free(Queue *queue)
     while (queue->count) pop(&queue);
 
     free(queue);
-	queue = NULL;
 }
