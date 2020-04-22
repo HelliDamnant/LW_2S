@@ -69,7 +69,7 @@ int main()
 int get_command()
 {
     int a;
-    if (!scanf("%d", &a)) ERROR;
+    if (!scanf("%d", &a) || a < 1 || a > 5) ERROR;
     return a;
 }
 

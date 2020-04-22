@@ -46,22 +46,16 @@ int main()
         printf("\nIn the list %d films\nEnter command: ", n);
         switch(get_command())
         {
-            // выход из программы
-            case 0:
-            {
+            case 0: {
                 free(films);
                 return 0;
             }
-            // добавление элемента
-            case 1:
-            {
+            case 1: {
                 films = (film*)realloc(films, (n + 1) * sizeof(film));
                 films[n++] = add_info();
                 break;
             }
-            // удаление по параметру
-            case 2:
-            {
+            case 2: {
                 int *indexes;
 
                 indexes = search_by_parametr(films, n);
@@ -74,9 +68,7 @@ int main()
                 free(indexes);
                 break;
             }
-            // удаление фильмов длинной больше заданной
-            case 3:
-            {
+            case 3: {
                 int *indexes, param;
                 indexes = (int*)malloc(1);
                 indexes[0] = 0;
@@ -92,9 +84,7 @@ int main()
                 free(indexes);
                 break;
             }
-            // поиск по параметру
-            case 5:
-            {
+            case 5: {
                 int *indexes;
                 indexes = search_by_parametr(films, n);
 
