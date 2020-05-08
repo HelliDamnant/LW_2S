@@ -2,45 +2,46 @@
 #include <stdlib.h>
 #include <string.h>
 
-char* get_path();
+#define ERROR {printf("Error!\n");exit(1);}
+
+char* get_str();
 int input(char *path);
 
 int main()
 {
     printf("Enter file name: ");
-    char *path = get_path();
+    char *path = get_str();
 
-    if (input(path))
-    {
-        printf("Error!");
-        exit(1);
-    }
-    
+    if (input(path)) ERROR
+
     free(path);
     return 0;
 }
 
-char* get_path()
+char* get_str()
 {
-    char *s = (char*)calloc(200, sizeof(char));
-    fgets(s, 200, stdin);
-    s[strlen(s) - 1] = 0;
-    s = (char*)realloc(s, strlen(s) * sizeof(char));
-    return s;
+	char *s = (char*)calloc(1, 1);
+	if (!s) ERROR
+
+	int k = 0;
+	char c;
+	while ((c = getchar()) != '\n')
+	{
+		if (!(s = (char*)realloc(s, ++k))) ERROR
+		s[k - 1] = c;
+	}
+
+	return s;
 }
 
 int input(char *path)
 {
-    FILE *f = NULL;
-    if ((f = fopen(path, "r + w")) == NULL) return -1;
+	FILE *f = fopen(path, "r + w");
+    if (!f) return 1;
 
     printf("Enter the number of items: ");
     int n;
-    if (scanf("%d", &n) == 0)
-    {
-        printf("Error");
-        return 1;
-    }
+    if (!scanf("%d", &n)) return 1;
 
     printf("Enter the numbers:\n");
     int a, b;
@@ -51,9 +52,9 @@ int input(char *path)
         {
             fseek(f, -1 * sizeof(int), 1);
             fread(&b, sizeof(int), 1, f);
-            
+
             if (a > b) break;
-            
+
             fwrite(&b, sizeof(int), 1, f);
             fseek(f, -2 * sizeof(int), 1);
         }
