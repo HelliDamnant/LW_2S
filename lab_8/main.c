@@ -42,23 +42,19 @@ int main()
                 if (scanf("%s%s", original, translated) != 2) ERROR
                 add_node(&root, original, translated);
                 break;
-            }
-            case 2: {
+            } case 2: {
                 printf("Enter the word you want to delete: ");
                 char param[STR_SIZE];
                 if (!scanf("%s", param)) ERROR
                 delete_node(&root, param);
                 break;
-            }
-            case 3: {
+            } case 3: {
                 view_tree(root);
                 break;
-            }
-            case 4: {
+            } case 4: {
                 view_tree_without_rec(root);
                 break;
-            }
-            case 5: {
+            } case 5: {
                 if (root) free_tree(root);
                 return 0;
             }
@@ -76,7 +72,7 @@ int get_command()
 void push(Stack **stack, Node *node)
 {
     Stack *temp = (Stack*)malloc(sizeof(Stack));
-    if (temp == NULL) ERROR
+    if (!temp) ERROR
 
     temp->data = node;
     temp->next = *stack;
@@ -86,7 +82,7 @@ void push(Stack **stack, Node *node)
 
 Node* pop(Stack **stack)
 {
-    if (stack == NULL) ERROR
+    if (!stack) ERROR
 
     Stack *previous = *stack;
     Node *top = (*stack)->data;

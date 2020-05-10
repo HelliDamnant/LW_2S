@@ -10,7 +10,6 @@ typedef struct Stack {
     struct Stack *next;
 } Stack;
 
-void writing_stack(Stack*, FILE*);
 char* read_str(FILE*);
 char* get_str();
 void push(Stack**, CONST_VOID_TYPE, unsigned int);
@@ -27,13 +26,13 @@ int main()
 
     FILE *f_num = fopen(file_numeric, "r"),
          *f_text = fopen(file_text, "r");
-    if (f_num == NULL || f_text == NULL) ERROR
+    if (!f_num || !f_text) ERROR
     if (feof(f_num) || feof(f_text)) ERROR
 
     Stack *stack = NULL;
 
     char *number, *word;
-    while ((number = read_str(f_num)) != NULL && (word = read_str(f_text)) != NULL)
+    while ((number = read_str(f_num)) && (word = read_str(f_text)))
     {
         push(&stack, (CONST_VOID_TYPE)number, strlen(number) * sizeof(char));
         push(&stack, (CONST_VOID_TYPE)word, strlen(word) * sizeof(char));
@@ -42,36 +41,33 @@ int main()
     fclose(f_text);
 
     FILE *f_new = fopen(new_file, "w");
-    if (f_new == NULL) ERROR
+    if (!f_new) ERROR
 
-    while (stack != NULL)
+    while (stack)
     {
         fprintf(f_new, "%s ", (char*)stack->data);
         pop(&stack);
     }
 
     fclose(f_new);
-    
-    return 0;   
+    return 0;
 }
 
 char* read_str(FILE *f)
 {
     if (feof(f)) return NULL;
-    
-    // удаление пробелов и переносов строки
+
     char c;
     while ((c = fgetc(f)) != EOF) if (c != ' ' && c != '\n') break;
     if (feof(f)) return NULL;
 
-    // считывание слова
     int k = 0;
     char *s = (char*)calloc(1,1);
-    if (s == NULL) ERROR
+    if (!s) ERROR
     do
     {
         s = (char*)realloc(s, ++k * sizeof(char));
-        if (s == NULL) ERROR
+        if (!s) ERROR
         s[k - 1] = c;
     }
     while ((c = fgetc(f)) != ' ' && c != '\n' && c != EOF);
@@ -80,40 +76,40 @@ char* read_str(FILE *f)
 
 char* get_str()
 {
-    char *s = (char*)calloc(200, sizeof(char));
-    if (s == NULL) ERROR
-
-    fgets(s, 200, stdin);
-    s[strlen(s) - 1] = 0;
-    
-    s = (char*)realloc(s, strlen(s) * sizeof(char));
-    if (s == NULL) ERROR
-
-    return s;
+	char *s = (char*)calloc(1, 1);
+	if (!s) ERROR
+	int k = 0;
+	char c;
+	while ((c = getchar()) != '\n')
+	{
+		if (!(s = (char*)realloc(s, ++k))) ERROR
+		s[k - 1] = c;
+	}
+	return s;
 }
 
 void push(Stack **stack, CONST_VOID_TYPE data, unsigned int t_size)
 {
     Stack *temp = (Stack*)malloc(sizeof(Stack));
-    if (temp == NULL) ERROR
-   
+    if (!temp) ERROR
+
     temp->data = malloc(t_size);
-    if (temp->data == NULL) ERROR
-    
+    if (!temp->data) ERROR
+
     memcpy(temp->data, data, t_size);
-    
+
     temp->next = *stack;
-    *stack = temp;   
+    *stack = temp;
 }
 
 void pop(Stack **stack)
 {
-    if (stack == NULL) ERROR
+    if (!stack) ERROR
 
     Stack *previous;
     previous = *stack;
     *stack = (*stack)->next;
-	
+
     free(previous->data);
     free(previous);
 }

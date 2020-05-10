@@ -2,46 +2,47 @@
 #include <stdlib.h>
 #include <string.h>
 
-char* get_path();
+#define ERROR {printf("Error!\n");exit(1);}
+
+char* get_str();
 int input_and_write(char *path);
 int read_and_output(char *path);
 
 int main()
 {
     printf("Enter file name: ");
-    char *path = get_path();
+    char *path = get_str();
 
     printf("Enter symbols: ");
-    if (input_and_write(path))
-    {
-        printf("Error!");
-        exit(1);
-    }
+    if (input_and_write(path)) ERROR
 
     printf("Result: ");
-    if (read_and_output(path))
-    {
-        printf("Error!");
-        exit(1);
-    }
+    if (read_and_output(path)) ERROR
 
     free(path);
     return 0;
 }
 
-char* get_path()
+char* get_str()
 {
-    char *s = (char*)calloc(200, sizeof(char));
-    fgets(s, 200, stdin);
-    s[strlen(s) - 1] = 0;
-    s = (char*)realloc(s, strlen(s) * sizeof(char));
-    return s;
+	char *s = (char*)calloc(1, 1);
+	if (!s) ERROR
+
+	int k = 0;
+	char c;
+	while ((c = getchar()) != '\n')
+	{
+		if (!(s = (char*)realloc(s, ++k))) ERROR
+		s[k - 1] = c;
+	}
+
+	return s;
 }
 
 int input_and_write(char *path)
 {
-    FILE *f = NULL;
-    if ((f = fopen(path, "w")) == NULL) return 1;
+	FILE *f = fopen(path, "w");
+    if (!f) return 1;
 
     char c;
     while (scanf("%c", &c) && c != '\n')
@@ -51,19 +52,18 @@ int input_and_write(char *path)
     }
     putc(EOF, f);
 
-    if (c == '\n')
-    {
+    if (c == '\n') {
         fclose(f);
-        return 0;   
-    }
-    else
-        return 1;
+        return 0;
+    } else {
+		return 1;
+	}
 }
 int read_and_output(char *path)
 {
-    FILE *f = NULL;
-    if ((f = fopen(path, "r")) == NULL) return 1;
-    
+	FILE *f = fopen(path, "r");
+    if (!f) return 1;
+
     char c;
     while ((c = getc(f)) != EOF) printf("%c ", c);
 

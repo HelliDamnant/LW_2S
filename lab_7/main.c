@@ -26,19 +26,19 @@ void list_free(List*);
 
 int main()
 {
-    FILE *f = NULL;
-    if ((f = fopen("data.txt", "r")) == NULL) ERROR
-    
+	FILE *f = fopen("data.txt", "r");
+    if (!f) ERROR
+
     List *list = (List*)malloc(sizeof(List));
-    if (list == NULL) ERROR
+    if (!list) ERROR
     list->size = 0;
-    
+
     char *str;
-    while ((str = read_str(f)) != NULL) push(&list, (CONST_VOID_TYPE)str, strlen(str) * sizeof(char));
+    while ((str = read_str(f))) push(&list, (CONST_VOID_TYPE)str, strlen(str) * sizeof(char));
 
     inserting_words(list);
 
-    while (list->head != NULL)
+    while (list->head)
     {
         printf("%s ", (char*)list->head->data);
         pop(&list);
@@ -55,10 +55,9 @@ void inserting_words(List *list)
 
     int i = 1;
     Node *temp = list->head;
-    while (temp != NULL)
+    while (temp)
     {
-        if (!strcmp((char*)temp->data, param))
-        {
+        if (!strcmp((char*)temp->data, param)) {
             printf("Enter a new element: ");
             char *str = get_str();
             if (i == 1)
@@ -84,23 +83,26 @@ char* read_str(FILE *f)
     // считывание слова
     int k = 0;
     char *s = NULL;
-    if ((s = (char*)calloc(1,1)) == NULL) ERROR
-    do
-    {
+    if (!(s = (char*)calloc(1,1))) ERROR
+    do {
         s = (char*)realloc(s, ++k * sizeof(char));
         s[k - 1] = c;
-    }
-    while ((c = fgetc(f)) != ' ' && c != '\n' && c != EOF);
+    } while ((c = fgetc(f)) != ' ' && c != '\n' && c != EOF);
     return s;
 }
 
 char* get_str()
 {
-    char *s = (char*)calloc(200, sizeof(char));
-    fgets(s, 200, stdin);
-    s[strlen(s) - 1] = 0;
-    s = (char*)realloc(s, strlen(s) * sizeof(char));
-    return s;
+	char *s = (char*)calloc(1, 1);
+	if (!s) ERROR
+	int k = 0;
+	char c;
+	while ((c = getchar()) != '\n')
+	{
+		if (!(s = (char*)realloc(s, ++k))) ERROR
+		s[k - 1] = c;
+	}
+	return s;
 }
 
 void insert(List *list, int pos, CONST_VOID_TYPE data, unsigned int t_size)
@@ -109,10 +111,10 @@ void insert(List *list, int pos, CONST_VOID_TYPE data, unsigned int t_size)
     while (--pos) prev = prev->next;
 
     Node *temp = (Node*)malloc(sizeof(Node));
-    if (temp == NULL) ERROR
+    if (!temp) ERROR
    
     temp->data = malloc(t_size);
-    if (temp->data == NULL) ERROR
+    if (!temp->data) ERROR
     
     memcpy(temp->data, data, t_size);
 
@@ -124,10 +126,10 @@ void insert(List *list, int pos, CONST_VOID_TYPE data, unsigned int t_size)
 void push(List **list, CONST_VOID_TYPE data, unsigned int t_size)
 {
     Node *temp = (Node*)malloc(sizeof(Node));
-    if (temp == NULL) ERROR
+    if (!temp) ERROR
    
     temp->data = malloc(t_size);
-    if (temp->data == NULL) ERROR
+    if (!temp->data) ERROR
     
     memcpy(temp->data, data, t_size);
     
@@ -138,7 +140,7 @@ void push(List **list, CONST_VOID_TYPE data, unsigned int t_size)
 
 void pop(List **list)
 {
-    if ((*list)->head == NULL) ERROR
+    if (!(*list)->head) ERROR
 
     Node *previous = (*list)->head;
     (*list)->size--;
@@ -150,6 +152,6 @@ void pop(List **list)
 
 void list_free(List *list)
 {
-    if (list == NULL) ERROR;
-    while (list != NULL) pop(&list);
+    if (!list) ERROR;
+    while (list) pop(&list);
 }
