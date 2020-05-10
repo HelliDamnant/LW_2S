@@ -30,7 +30,7 @@ union sub {
 typedef struct {
     int duration;
     char *title;
-	union sub 
+	union sub sub;
 } film;
 
 typedef struct {
@@ -198,7 +198,7 @@ set search(int type, film *films, int n)
             get_static_str(param);
 
             for (int i = 0; i < n; i++) 
-                if (!check_year(films[i].year))
+                if (!check_year(films[i].sub.year))
                     if (!strcmp(films[i].sub.genre, param))
                         add_ind(i, &indexes);
 
@@ -208,7 +208,7 @@ set search(int type, film *films, int n)
             int param = get_num();
 
             for (int i = 0; i < n; i++)
-                if (check_year(films[i].year))
+                if (check_year(films[i].sub.year))
                     if (films[i].sub.year == param)
                         add_ind(i, &indexes);
 
@@ -238,7 +238,7 @@ void add_info(film **films, int *n)
             break;
         } case 2: {
             printf("Enter the release year of the movie: ");
-            (*films)[*n].year = get_num();
+            (*films)[*n].sub.year = get_num();
             if (!check_year((*films)[*n].sub.year)) ERROR
             break;
         } default: {
@@ -254,7 +254,7 @@ void output_info(film *films, int n)
     for (int i = 0; i < n; i++)
     {
         printf("\n%d.\nDuration: %d\nName: %s\n", i + 1, films[i].duration, films[i].title);
-        if (check_year(films[i].year))
+        if (check_year(films[i].sub.year))
             printf("Year: %d\n", films[i].sub.year);
         else
             printf("Genre: %s\n", films[i].sub.genre);
@@ -265,7 +265,7 @@ void delete_info(film **films, int *n)
 {
     printf(type_list);
     set indexes = search(get_num(), *films, *n);
-    
+
     if (!indexes.size) {
         printf("Not found\n");
         free(indexes.set);
@@ -308,7 +308,7 @@ void new_movies(film *films, int n)
 void delete_by_genre(film **films, int *n)
 {
     set indexes = search(3, *films, *n);
-    
+
     if (!indexes.size) {
         printf("Not found\n");
         free(indexes.set);
